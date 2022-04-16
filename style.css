@@ -1,0 +1,147 @@
+@import url("https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900");
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+body {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  background-color: hsl(60deg 71% 56%);
+}
+
+#main {
+  display: grid;
+  grid-template-rows: repeat(50, 1fr);
+  grid-template-columns: repeat(50, 1fr);
+  width: 100%;
+  height: 99vh;
+  margin: 0px 5px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("./Arcade-Games-Banner.jpg");
+}
+
+.center-tile {
+  grid-row-start: 14;
+  grid-row-end: 17;
+  grid-column-start: 20;
+  grid-column-end: 32;
+}
+
+.side-tile {
+  grid-row-start: 19;
+  grid-row-end: 22;
+  grid-column-start: 32;
+  grid-column-end: 34;
+}
+
+.links-tile {
+    grid-row-start: 26;
+    grid-row-end: 40;
+    grid-column-start: 29;
+    grid-column-end: 36;
+}
+
+.info-tile {
+    grid-row-start: 47;
+    grid-row-end: 50;
+    grid-column-start: 30;
+    grid-column-end: 34;
+}
+
+.text {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  display: table;
+  font-size: 2em;
+  font-family: "Poppins", sans-serif;
+}
+
+.text-color-yellow {
+    color: #dede3e;
+}
+
+.text-color-blue {
+    color: #18639b;
+}
+
+.links-position {
+    position: relative;
+}
+
+.jumpy {
+  position: relative;
+  -webkit-box-reflect: below -2.2vh linear-gradient(transparent, rgba(0, 0, 0, 0.2));
+}
+
+.jumpy > * {
+  display: inline-block;
+  animation: jumpy 1s infinite;
+  animation-delay: calc(0.1s * var(--i));
+}
+
+@keyframes jumpy {
+  0%,
+  40%,
+  100% {
+    transform: translateY(0);
+  }
+
+  20% {
+    transform: translateY(-2.2vh);
+  }
+}
+
+.ocean-wave {
+    position: relative;
+}
+
+.ocean-wave > .text:nth-child(1) {
+  color: transparent;
+  -webkit-text-stroke: 0.5px #18639b;
+}
+
+.ocean-wave > .text:nth-child(2) {
+  color: #18639b;
+  animation: animate 3s ease-in-out infinite;
+}
+
+@keyframes animate {
+  0%,
+  100% {
+    clip-path: polygon(
+      0% 45%,
+      16% 44%,
+      33% 50%,
+      54% 60%,
+      70% 61%,
+      84% 59%,
+      100% 52%,
+      100% 100%,
+      0% 100%
+    );
+  }
+
+  50% {
+    clip-path: polygon(
+      0% 60%,
+      15% 65%,
+      34% 66%,
+      51% 62%,
+      67% 50%,
+      84% 45%,
+      100% 46%,
+      100% 100%,
+      0% 100%
+    );
+  }
+}
