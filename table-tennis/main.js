@@ -8,8 +8,10 @@ let ballSpeedY = 4;
 let framesPerSecond = 30;
 
 const WINNING_SCORE = 3;
+const BASE_SPEED_RAMP = 10;
 let showEndScreen = false;
 let Player1Score = 0;
+const Player1BaseSpeed = 3;
 let Player2Score = 0;
 
 let padddle1Y = 250;
@@ -20,31 +22,15 @@ const PADDLE_HEIGHT = 100;
 
 let frames = 0;
 
-function calculateMousePos(evt) {
-  let rect = canva.getBoundingClientRect();
-  let root = document.documentElement;
-  let mouseX = evt.clientX - rect.left - root.scrollLeft;
-  let mouseY = evt.clientY - rect.top - root.scrollTop;
-  return {
-    X: mouseX,
-    Y: mouseY,
-  };
-}
-
 window.onload = () => {
   canva = document.getElementById("canva");
   canvaContent = canva.getContext("2d");
-  let start = () => {
-    frames = setInterval(() => {
-      moveEverything();
-      drawEverything();
-    }, 1000 / framesPerSecond);
-  };
 
   canva.addEventListener("mousemove", (evt) => {
     let mousePos = calculateMousePos(evt);
     padddle2Y = mousePos.Y - PADDLE_HEIGHT / 2;
   });
+
   window.addEventListener("keyup", (evt) => {
     if (evt.key == " " || evt.code == "Space") {
       if (frames) {
@@ -62,25 +48,48 @@ window.onload = () => {
       }
     }
   });
+
   start();
 };
+
+function start(startSpeed = 0) {
+  frames = setInterval(() => {
+    moveEverything();
+    drawEverything();
+  }, 1000 / (framesPerSecond+startSpeed));
+};
+
+function calculateMousePos(evt) {
+  let rect = canva.getBoundingClientRect();
+  let root = document.documentElement;
+  let mouseX = evt.clientX - rect.left - root.scrollLeft;
+  let mouseY = evt.clientY - rect.top - root.scrollTop;
+  return {
+    X: mouseX,
+    Y: mouseY,
+  };
+}
 
 function ballRest() {
   if (Player1Score >= WINNING_SCORE || Player2Score >= WINNING_SCORE) {
     showEndScreen = true;
     clearInterval(frames);
     frames = 0;
+  } else {
+    ballX = canva.width / 2;
+    ballY = canva.height / 2;
+    clearInterval(frames);
+    start((Player1Score + Player2Score) * BASE_SPEED_RAMP);  
   }
-  ballX = canva.width / 2;
-  ballY = canva.height / 2;
 }
 
 function computerMovement() {
-  let padddle1YCenter = padddle1Y + PADDLE_HEIGHT / 2;
+  const padddle1YCenter = padddle1Y + PADDLE_HEIGHT / 2;
+  const Player1Speed = Player1BaseSpeed * (Player2Score+3);
   if (padddle1YCenter < ballY - 35) {
-    padddle1Y += 6;
+    padddle1Y += Player1Speed;
   } else if (padddle1YCenter > ballY + 35) {
-    padddle1Y -= 6;
+    padddle1Y -= Player1Speed;
   }
 }
 
