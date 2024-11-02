@@ -10,9 +10,19 @@ document.addEventListener("touchmove", handleTouchMove, false);
 
 const gameBoard = document.getElementById("game-board");
 
-const grid = new Grid(gameBoard);
-grid.randomEmptyCell().tile = new Tile(gameBoard);
-grid.randomEmptyCell().tile = new Tile(gameBoard);
+window.onload = () => {
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen();
+  }
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("../serviceWorker.js", { scope: "/", updateViaCache: "none" })
+      .then(() => console.log("Service Worker: Registered"));
+  }
+  const grid = new Grid(gameBoard);
+  grid.randomEmptyCell().tile = new Tile(gameBoard);
+  grid.randomEmptyCell().tile = new Tile(gameBoard);
+};
 
 function setUpInput() {
   window.addEventListener("keydown", handleInput, { once: true });
@@ -137,7 +147,3 @@ function canMove(cells) {
     });
   });
 }
-
-window.onload(() => {
-  document.documentElement.requestFullscreen();
-});

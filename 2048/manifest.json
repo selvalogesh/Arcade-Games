@@ -1,8 +1,0 @@
-{
-    "short_name": "2048",
-    "name": "2048",
-    "icons": [],
-    "start_url": "/index.html",
-    "display": "fullscreen",
-    "orientation": "portrait"
-  }
