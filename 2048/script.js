@@ -5,10 +5,11 @@ import {
   handleTouchMove,
 } from "../utilities/touchScreenHandler.js";
 
-document.addEventListener("touchstart", handleTouchStart, false);
-document.addEventListener("touchmove", handleTouchMove, false);
-
 const gameBoard = document.getElementById("game-board");
+
+const grid = new Grid(gameBoard);
+grid.randomEmptyCell().tile = new Tile(gameBoard);
+grid.randomEmptyCell().tile = new Tile(gameBoard);
 
 window.onload = () => {
   if (document.documentElement.requestFullscreen) {
@@ -19,13 +20,13 @@ window.onload = () => {
       .register("../serviceWorker.js", { scope: "/", updateViaCache: "none" })
       .then(() => console.log("Service Worker: Registered"));
   }
-  const grid = new Grid(gameBoard);
-  grid.randomEmptyCell().tile = new Tile(gameBoard);
-  grid.randomEmptyCell().tile = new Tile(gameBoard);
+  setUpInput();
 };
 
 function setUpInput() {
   window.addEventListener("keydown", handleInput, { once: true });
+  window.addEventListener("touchstart", handleTouchStart, { once: true });
+  window.addEventListener("touchmove", handleTouchMove, { once: true });
 }
 
 async function handleInput(e) {
@@ -72,8 +73,6 @@ async function handleInput(e) {
   }
   setUpInput();
 }
-
-setUpInput();
 
 function moveUp() {
   return slideTiles(grid.cellsByColumn);

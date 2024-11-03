@@ -1,5 +1,4 @@
 const cacheName = "v1.0";
-
 const cacheAssets = []; // for pre-caching resources
 
 // installation
@@ -21,17 +20,38 @@ self.addEventListener("activate", () => {
 // fetch
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.open(cacheName).then(async (cache) => {
-      // Go to the cache first
-      const cachedResponse = await cache.match(event.request.url);
-      // Return a cached response if we have one
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      const fetchedResponse = await fetch(event.request);
-      // Add the network response to the cache for later visits
-      cache.put(event.request, fetchedResponse.clone());
-      return fetchedResponse;
+    cacheFirst({
+      request: event.request,
+      fallbackUrl: "/gallery/myLittleVader.jpg",
     })
   );
 });
+
+// caching startergies
+async function cacheFirst({ request, fallbackUrl }) {
+  // Go to the cache first
+  const cachedResponse = await caches.match(request.url);
+  const fetchedResponse = fetchCacheUpdateAndFallback(request, fallbackUrl); // not awaiting response
+  return cachedResponse || fetchedResponse;
+}
+
+async function fetchCacheUpdateAndFallback(request, fallbackUrl) {
+  try {
+    const [fetchedResponse, cache] = await Promise.all([
+      fetch(request),
+      caches.open(cacheName),
+    ]);
+    cache.put(request, fetchedResponse.clone()); // not awaiting done status
+    return fetchedResponse;
+  } catch (error) {
+    const fallbackResponse = await caches.match(fallbackUrl);
+    if (fallbackResponse) {
+      return fallbackResponse;
+    }
+    // when even the fallback response is not available, always return a Response object
+    return new Response("Network error happened", {
+      status: 408,
+      headers: { "Content-Type": "text/plain" },
+    });
+  }
+}
