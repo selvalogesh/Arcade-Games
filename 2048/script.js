@@ -5,6 +5,9 @@ import {
   handleTouchMove,
 } from "../utilities/touchScreenHandler.js";
 
+window.addEventListener("touchstart", handleTouchStart, false);
+window.addEventListener("touchmove", handleTouchMove, false);
+
 const gameBoard = document.getElementById("game-board");
 
 const grid = new Grid(gameBoard);
@@ -25,8 +28,6 @@ window.onload = () => {
 
 function setUpInput() {
   window.addEventListener("keydown", handleInput, { once: true });
-  window.addEventListener("touchstart", handleTouchStart, { once: true });
-  window.addEventListener("touchmove", handleTouchMove, { once: true });
 }
 
 async function handleInput(e) {
