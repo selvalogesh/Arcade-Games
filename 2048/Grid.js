@@ -44,9 +44,17 @@ class Cell {
     }
 
     removeMergeTile() {
-        if(this.tile === null || this.mergeTile === null) return;
+        if(this.tile === null || this.mergeTile === null) return 0;
         this.tile.value += this.mergeTile.value;
         this.mergeTile.removeElement();
+        this.mergeTile = null;
+        return this.tile.value;
+    }
+
+    clear() {
+        this.tile?.removeElement();
+        this.mergeTile?.removeElement();
+        this.tile = null;
         this.mergeTile = null;
     }
 }
@@ -73,8 +81,8 @@ export default class Grid {
     /* Public functions */
     constructor(gridElement) {
         gridElement.style.setProperty("--grid-size", GRID_SIZE);
-        gridElement.style.setProperty("--cell-size", `${CELL_SIZE}vmin`);
-        gridElement.style.setProperty("--cell-gap", `${CELL_GAP}vmin`);
+        gridElement.style.setProperty("--cell-size", `calc(var(--u) * ${CELL_SIZE})`);
+        gridElement.style.setProperty("--cell-gap", `calc(var(--u) * ${CELL_GAP})`);
         this.#cells = this.#createCellElements(gridElement).map((cellElement, index) => {
             return new Cell(cellElement, index%GRID_SIZE, Math.floor(index/GRID_SIZE) );
         });
@@ -85,8 +93,13 @@ export default class Grid {
         return this.#emptyCells[randomIndex];
     }
 
+    /* Returns the points gained, i.e. the sum of the newly merged tile values */
     mergeTiles() {
-        this.#cells.forEach(cell => cell.removeMergeTile());
+        return this.#cells.reduce((points, cell) => points + cell.removeMergeTile(), 0);
+    }
+
+    reset() {
+        this.#cells.forEach(cell => cell.clear());
     }
 
     maxScore() {

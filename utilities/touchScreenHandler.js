@@ -1,6 +1,9 @@
 let xDown = null;
 let yDown = null;
 
+// Minimum finger travel in px before a touch counts as a swipe
+const SWIPE_THRESHOLD = 10;
+
 function getTouches(evt) {
   return (
     evt.touches || // browser API
@@ -15,7 +18,7 @@ export function handleTouchStart(evt) {
 }
 
 export function handleTouchMove(evt) {
-  if (!xDown || !yDown) {
+  if (xDown === null || yDown === null) {
     return;
   }
 
@@ -24,6 +27,10 @@ export function handleTouchMove(evt) {
 
   const xDiff = xDown - xUp;
   const yDiff = yDown - yUp;
+
+  if (Math.max(Math.abs(xDiff), Math.abs(yDiff)) < SWIPE_THRESHOLD) {
+    return;
+  }
 
   if (Math.abs(xDiff) > Math.abs(yDiff)) {
     /*most significant*/

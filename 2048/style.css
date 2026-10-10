@@ -3,15 +3,86 @@
     font-family: Arial;
 }
 
+:root {
+    /* One layout unit: the board is 90u wide and the whole game about 120u tall,
+       so it fits both portrait phones and landscape tablets */
+    --u: min(1vw, 0.75vh);
+    --u: min(1vw, 0.75dvh);
+}
+
 body {
-    overscroll-behavior-y: contain;
+    overscroll-behavior: none;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
     background-color: #333;
+    color: #eee;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    height: 100dvh;
     margin: 0;
-    font-size: 7.5vmin;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    font-size: calc(var(--u) * 7.5);
+}
+
+#game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 4);
+}
+
+#header {
+    display: flex;
+    align-items: stretch;
+    gap: calc(var(--u) * 2);
+    width: calc(var(--u) * 90);
+}
+
+#title {
+    flex: 1;
+    margin: 0;
+    font-size: calc(var(--u) * 11);
+    align-self: center;
+    color: hsl(200, 50%, 75%);
+}
+
+.score-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: calc(var(--u) * 18);
+    padding: calc(var(--u) * 1) calc(var(--u) * 2);
+    background-color: #555;
+    border-radius: 1vmin;
+    font-size: calc(var(--u) * 5);
+    font-weight: bold;
+}
+
+.score-label {
+    font-size: calc(var(--u) * 3);
+    font-weight: normal;
+    text-transform: uppercase;
+    color: #bbb;
+}
+
+button {
+    border: none;
+    border-radius: 1vmin;
+    padding: calc(var(--u) * 2) calc(var(--u) * 3);
+    background-color: hsl(200, 50%, 40%);
+    color: #fff;
+    font-size: calc(var(--u) * 4.5);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:active {
+    background-color: hsl(200, 50%, 30%);
 }
 
 #game-board {
@@ -19,7 +90,7 @@ body {
     grid-template-columns: repeat(var(--grid-size), var(--cell-size));
     grid-template-rows: repeat(var(--grid-size), var(--cell-size));
     background-color: #ccc;
-    gap: 2vmin;
+    gap: var(--cell-gap);
     border-radius: 1vmin;
     padding: var(--cell-gap);
     position: relative;
@@ -47,9 +118,63 @@ body {
     transition: 100ms ease-in-out;
 }
 
+.tile[data-digits="4"] {
+    font-size: calc(var(--u) * 6.5);
+}
+
+.tile[data-digits="5"],
+.tile[data-digits="6"] {
+    font-size: calc(var(--u) * 5);
+}
+
 @keyframes show {
     0% {
         opacity: .5;
         transform: scale(0);
     }
+}
+
+#overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 5);
+    border-radius: 1vmin;
+    background-color: rgba(40, 40, 40, 0.85);
+    backdrop-filter: blur(6px);
+    text-align: center;
+    animation: fade-in 300ms ease-in;
+}
+
+#overlay[hidden],
+#overlay button[hidden] {
+    display: none;
+}
+
+#overlay-message {
+    margin: 0;
+    font-size: calc(var(--u) * 8);
+    font-weight: bold;
+    line-height: 1.3;
+}
+
+#overlay-buttons {
+    display: flex;
+    gap: calc(var(--u) * 3);
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+}
+
+#hint {
+    margin: 0;
+    font-size: calc(var(--u) * 3.5);
+    color: #999;
 }

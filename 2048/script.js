@@ -5,32 +5,67 @@ import {
   handleTouchMove,
 } from "../utilities/touchScreenHandler.js";
 
+const SAVE_KEY = "2048-game";
+const BEST_KEY = "2048-best-score";
+const WIN_VALUE = 2048;
+
 window.addEventListener("touchstart", handleTouchStart, false);
 window.addEventListener("touchmove", handleTouchMove, false);
 
 const gameBoard = document.getElementById("game-board");
+const scoreElement = document.getElementById("score");
+const bestScoreElement = document.getElementById("best-score");
+const overlay = document.getElementById("overlay");
+const overlayMessage = document.getElementById("overlay-message");
+const keepPlayingButton = document.getElementById("keep-playing");
 
 const grid = new Grid(gameBoard);
-grid.randomEmptyCell().tile = new Tile(gameBoard);
-grid.randomEmptyCell().tile = new Tile(gameBoard);
+let score = 0;
+let bestScore = Number(readStorage(BEST_KEY)) || 0;
+let hasWon = false;
+// Bumped on every new game so moves still animating from a previous game are dropped
+let gameId = 0;
+
+document.getElementById("new-game").addEventListener("click", newGame);
+document.getElementById("try-again").addEventListener("click", newGame);
+keepPlayingButton.addEventListener("click", () => {
+  hideOverlay();
+  setUpInput();
+});
+
+if (!restoreGame()) newGame();
 
 window.onload = () => {
-  if (document.documentElement.requestFullscreen) {
-    document.documentElement.requestFullscreen();
-  }
+  // Inside the Android app (Capacitor) assets are bundled, so no service worker is needed
+  if (window.Capacitor) return;
+  document.documentElement.requestFullscreen?.().catch(() => {});
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("../serviceWorker.js", { scope: "/", updateViaCache: "none" })
-      .then(() => console.log("Service Worker: Registered"));
+      .then(() => console.log("Service Worker: Registered"))
+      .catch(() => {});
   }
-  setUpInput();
 };
+
+function newGame() {
+  gameId += 1;
+  window.removeEventListener("keydown", handleInput);
+  hideOverlay();
+  grid.reset();
+  hasWon = false;
+  setScore(0);
+  grid.randomEmptyCell().tile = new Tile(gameBoard);
+  grid.randomEmptyCell().tile = new Tile(gameBoard);
+  saveGame();
+  setUpInput();
+}
 
 function setUpInput() {
   window.addEventListener("keydown", handleInput, { once: true });
 }
 
 async function handleInput(e) {
+  const currentGame = gameId;
   switch (e.key) {
     case "ArrowUp":
       if (!canMoveUp()) {
@@ -64,15 +99,100 @@ async function handleInput(e) {
       setUpInput();
       return;
   }
-  grid.mergeTiles();
+  if (currentGame !== gameId) return;
+  setScore(score + grid.mergeTiles());
   const newTile = new Tile(gameBoard);
   grid.randomEmptyCell().tile = newTile;
+  saveGame();
   await newTile.waitForTransition(true);
+  if (currentGame !== gameId) return;
+
   if (!canMoveUp() && !canMoveDown() && !canMoveLeft() && !canMoveRight()) {
-    alert(`Lost with max score ${grid.maxScore()}`);
+    removeStorage(SAVE_KEY);
+    showOverlay(`Game over!<br>Score ${score}`, false);
+    return;
+  }
+  if (!hasWon && grid.maxScore() >= WIN_VALUE) {
+    hasWon = true;
+    saveGame();
+    showOverlay(`You made ${WIN_VALUE}!`, true);
     return;
   }
   setUpInput();
+}
+
+function setScore(value) {
+  score = value;
+  scoreElement.textContent = score;
+  if (score > bestScore) {
+    bestScore = score;
+    writeStorage(BEST_KEY, bestScore);
+  }
+  bestScoreElement.textContent = bestScore;
+}
+
+function showOverlay(message, canKeepPlaying) {
+  overlayMessage.innerHTML = message;
+  keepPlayingButton.hidden = !canKeepPlaying;
+  overlay.hidden = false;
+}
+
+function hideOverlay() {
+  overlay.hidden = true;
+}
+
+function saveGame() {
+  const tiles = grid.cellsByRow.flat().map((cell) => cell.tile?.value ?? 0);
+  writeStorage(SAVE_KEY, JSON.stringify({ tiles, score, hasWon }));
+}
+
+function restoreGame() {
+  try {
+    const { tiles, score: savedScore, hasWon: savedHasWon } = JSON.parse(
+      readStorage(SAVE_KEY)
+    );
+    const cells = grid.cellsByRow.flat();
+    if (tiles.length !== cells.length || !tiles.some((value) => value > 0)) {
+      return false;
+    }
+    tiles.forEach((value, index) => {
+      if (value > 0) cells[index].tile = new Tile(gameBoard, value);
+    });
+    hasWon = savedHasWon;
+    setScore(savedScore);
+    if (!canMoveUp() && !canMoveDown() && !canMoveLeft() && !canMoveRight()) {
+      return false;
+    }
+    setUpInput();
+    return true;
+  } catch {
+    grid.reset();
+    return false;
+  }
+}
+
+function readStorage(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Storage unavailable (e.g. private mode); the game still works without saving
+  }
+}
+
+function removeStorage(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // Ignore, see writeStorage
+  }
 }
 
 function moveUp() {

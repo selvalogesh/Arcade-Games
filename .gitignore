@@ -1,1 +1,7 @@
 *.code-workspace
+# Android app builds
+apps/*/node_modules/
+apps/*/www/
+apps/keystore.properties
+*.jks
+*.keystore
