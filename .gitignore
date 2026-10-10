@@ -5,3 +5,4 @@ apps/*/www/
 apps/keystore.properties
 *.jks
 *.keystore
+.idea/
