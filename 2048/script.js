@@ -6,7 +6,8 @@ import {
 } from "../utilities/touchScreenHandler.js";
 
 const SAVE_KEY = "2048-game";
-const BEST_KEY = "2048-best-score";
+// Score is the highest tile on the board
+const BEST_KEY = "2048-best-tile";
 const WIN_VALUE = 2048;
 
 window.addEventListener("touchstart", handleTouchStart, false);
@@ -53,9 +54,9 @@ function newGame() {
   hideOverlay();
   grid.reset();
   hasWon = false;
-  setScore(0);
   grid.randomEmptyCell().tile = new Tile(gameBoard);
   grid.randomEmptyCell().tile = new Tile(gameBoard);
+  setScore(grid.maxScore());
   saveGame();
   setUpInput();
 }
@@ -100,9 +101,10 @@ async function handleInput(e) {
       return;
   }
   if (currentGame !== gameId) return;
-  setScore(score + grid.mergeTiles());
+  grid.mergeTiles();
   const newTile = new Tile(gameBoard);
   grid.randomEmptyCell().tile = newTile;
+  setScore(grid.maxScore());
   saveGame();
   await newTile.waitForTransition(true);
   if (currentGame !== gameId) return;
@@ -143,12 +145,12 @@ function hideOverlay() {
 
 function saveGame() {
   const tiles = grid.cellsByRow.flat().map((cell) => cell.tile?.value ?? 0);
-  writeStorage(SAVE_KEY, JSON.stringify({ tiles, score, hasWon }));
+  writeStorage(SAVE_KEY, JSON.stringify({ tiles, hasWon }));
 }
 
 function restoreGame() {
   try {
-    const { tiles, score: savedScore, hasWon: savedHasWon } = JSON.parse(
+    const { tiles, hasWon: savedHasWon } = JSON.parse(
       readStorage(SAVE_KEY)
     );
     const cells = grid.cellsByRow.flat();
@@ -159,7 +161,7 @@ function restoreGame() {
       if (value > 0) cells[index].tile = new Tile(gameBoard, value);
     });
     hasWon = savedHasWon;
-    setScore(savedScore);
+    setScore(grid.maxScore());
     if (!canMoveUp() && !canMoveDown() && !canMoveLeft() && !canMoveRight()) {
       return false;
     }

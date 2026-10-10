@@ -44,11 +44,10 @@ class Cell {
     }
 
     removeMergeTile() {
-        if(this.tile === null || this.mergeTile === null) return 0;
+        if(this.tile === null || this.mergeTile === null) return;
         this.tile.value += this.mergeTile.value;
         this.mergeTile.removeElement();
         this.mergeTile = null;
-        return this.tile.value;
     }
 
     clear() {
@@ -93,9 +92,8 @@ export default class Grid {
         return this.#emptyCells[randomIndex];
     }
 
-    /* Returns the points gained, i.e. the sum of the newly merged tile values */
     mergeTiles() {
-        return this.#cells.reduce((points, cell) => points + cell.removeMergeTile(), 0);
+        this.#cells.forEach(cell => cell.removeMergeTile());
     }
 
     reset() {
