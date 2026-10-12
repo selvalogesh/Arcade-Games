@@ -18,8 +18,8 @@ apps/
 
 - Node 22+
 - Android SDK (Android Studio, or cmdline-tools in `%LOCALAPPDATA%\Android\Sdk`)
-- JDK 21: Android Studio's bundled one works:
-  `JAVA_HOME=C:\Program Files\Android\Android Studio\jbr`
+- JDK 21 (e.g. Temurin 21) as `JAVA_HOME`. Android Studio's bundled JBR is Java 25,
+  which Gradle 8.14 can't run on.
 
 ## Build a release bundle (2048)
 

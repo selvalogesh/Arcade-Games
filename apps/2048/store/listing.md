@@ -38,6 +38,7 @@ A clean, distraction-free take on the classic sliding number puzzle.
 |---|---|
 | Privacy policy | URL above |
 | Ads | No, the app does not contain ads |
+| Advertising ID | No, the app does not use advertising ID |
 | App access | All functionality is available without special access |
 | Content rating | Questionnaire: category "Game", answer **No** to all violence, sexuality, language, controlled substance, gambling, user interaction and data-sharing questions → expected rating: Everyone / PEGI 3 |
 | Target audience | 13+ (picking under-13 ages triggers the Families policy & extra review; choose younger only if you intend to) |
