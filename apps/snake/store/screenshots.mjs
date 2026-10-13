@@ -10,7 +10,7 @@ const outDir = join(resolve(import.meta.dirname), "screenshots");
 await mkdir(outDir, { recursive: true });
 
 const BEST = 42;
-// Score to reach before taking the screenshot; the last one plays on into a wall
+// Score to reach before taking the screenshot; the last one then curls into its own body
 const states = [
   { name: "1-start", score: null },
   { name: "2-midgame", score: 18 },
@@ -38,10 +38,12 @@ for (const { name, score, crash } of states) {
   await page.reload();
   await page.waitForTimeout(400);
   if (score !== null) {
-    await page.evaluate(startAutopilot);
+    // The snake starts facing up; turning left starts the game and gives the autopilot a known heading
+    await page.keyboard.press("ArrowLeft");
+    await page.evaluate(startAutopilot, "ArrowLeft");
     await page.waitForFunction((s) => Number(document.getElementById("score").textContent) >= s, score, { timeout: 120000 });
     if (crash) {
-      await page.evaluate(() => clearInterval(window.autopilot));
+      await page.evaluate(() => (window.autopilotCrash = true));
       await page.waitForFunction(() => !document.getElementById("overlay").hidden, null, { timeout: 20000 });
       await page.waitForTimeout(500);
     } else {
@@ -58,13 +60,14 @@ for (const { name, score, crash } of states) {
 }
 await browser.close();
 
-// Runs in the page: greedily steers toward the food, avoiding walls and the snake's body
-function startAutopilot() {
+// Runs in the page: greedily steers toward the food, avoiding the edges and the snake's body.
+// With window.autopilotCrash set it turns clockwise every move until it hits itself.
+function startAutopilot(initialDirection) {
   const GRID_SIZE = 21;
   const DIRECTIONS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
   const position = (el) => ({ x: Number(el.style.gridColumnStart), y: Number(el.style.gridRowStart) });
   let lastHead = null;
-  let current = null;
+  let current = initialDirection;
   window.autopilot = setInterval(() => {
     const headElement = document.querySelector(".snake.head");
     if (!headElement) return;
@@ -73,6 +76,12 @@ function startAutopilot() {
     lastHead = `${head.x},${head.y}`;
     const food = position(document.querySelector(".food"));
     const body = new Set([...document.querySelectorAll(".snake")].map((el) => `${el.style.gridColumnStart},${el.style.gridRowStart}`));
+    if (window.autopilotCrash) {
+      const clockwise = { ArrowRight: "ArrowDown", ArrowDown: "ArrowLeft", ArrowLeft: "ArrowUp", ArrowUp: "ArrowRight" };
+      current = clockwise[current];
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: current }));
+      return;
+    }
     let best = null;
     for (const [key, [dx, dy]] of Object.entries(DIRECTIONS)) {
       if (current && dx === -DIRECTIONS[current][0] && dy === -DIRECTIONS[current][1]) continue;

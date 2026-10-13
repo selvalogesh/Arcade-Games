@@ -5,15 +5,16 @@
 **App name** (max 30): `Snake - Classic Arcade`
 
 **Short description** (max 80):
-`Swipe to steer, eat to grow, don't hit the walls. Simple, offline, ad-free.`
+`Swipe to steer, eat to grow, don't bite your tail. Simple, offline, ad-free.`
 
 **Full description** (max 4000):
 
 ```
-The classic snake game, made for your phone. Swipe to steer the snake toward the food. Every bite makes it longer and a little faster. Hit a wall or your own tail and it's game over!
+The classic snake game, made for your phone. Swipe to steer the snake toward the food. Every bite makes it longer and a little faster. Slip through one wall to come out of the opposite one, but run into your own tail and it's game over!
 
 • Simple swipe controls (arrow keys work too)
 • Speeds up as the snake grows
+• Wrap-around walls
 • Score and best score tracking
 • Pause any time; the game also pauses itself when you leave the app
 • Works fully offline

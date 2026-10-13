@@ -11,20 +11,28 @@ await mkdir(assetsDir, { recursive: true });
 
 const BG = "#333333";
 const SNAKE = "hsl(200, 100%, 50%)";
-const HEAD = "hsl(200, 100%, 65%)";
+const GLOW = "hsla(200, 100%, 55%, 0.8)";
+const EYE = "#1c1c1c";
 const FOOD = "hsl(50, 100%, 50%)";
 
-// An S-shaped snake on a 5x5 grid of `cell` px blocks, its head top right heading for the food
+// An S-shaped glowing snake on a 5x5 grid of `cell` px blocks, its head top right heading for the food.
+// Sizes match the game: blocks fill 88% of a cell, eyes are 24% of a block, 18% in from its edges.
 const BODY = [[2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [2, 3], [2, 4], [1, 4], [0, 4]];
 const art = (cell) => {
-  const block = (x, y, color, radius) => `
+  const size = cell * 0.88;
+  const block = (x, y, style) => `
     <div style="position:absolute;left:${x * cell + cell * 0.06}px;top:${y * cell + cell * 0.06}px;
-      width:${cell * 0.88}px;height:${cell * 0.88}px;border-radius:${radius};background:${color}"></div>`;
-  const blocks = BODY.map(([x, y], i) => block(x, y, i === 0 ? HEAD : SNAKE, `${cell * 0.18}px`));
-  blocks.push(block(4, 0, FOOD, "50%"));
-  const eye = `<div style="position:absolute;left:${cell * 2.58}px;top:${cell * 0.24}px;width:${cell * 0.2}px;
-    height:${cell * 0.2}px;border-radius:50%;background:${BG}"></div>`;
-  return `<div style="position:relative;width:${cell * 5}px;height:${cell * 5}px">${blocks.join("")}${eye}</div>`;
+      width:${size}px;height:${size}px;${style}"></div>`;
+  const blocks = BODY.map(([x, y]) =>
+    block(x, y, `border-radius:${cell * 0.18}px;background:${SNAKE};box-shadow:0 0 ${cell * 0.14}px ${GLOW}`));
+  blocks.push(block(4, 0, `border-radius:50%;background:${FOOD}`));
+  // Two eyes on the head's right side, looking at the food
+  const eyeSize = size * 0.24;
+  const inset = size * 0.18;
+  const eye = (top) => `<div style="position:absolute;left:${2 * cell + cell * 0.06 + size - inset - eyeSize}px;
+    top:${top}px;width:${eyeSize}px;height:${eyeSize}px;border-radius:50%;background:${EYE}"></div>`;
+  const eyes = eye(cell * 0.06 + inset) + eye(cell * 0.06 + size - inset - eyeSize);
+  return `<div style="position:relative;width:${cell * 5}px;height:${cell * 5}px">${blocks.join("")}${eyes}</div>`;
 };
 
 const page = (w, h, bg, body) => `<!doctype html><html><body style="margin:0;width:${w}px;height:${h}px;

@@ -2,16 +2,14 @@ import {
     update as updateSnake,
     draw as drawSnake,
     resetSnake,
-    getSnakeHead,
     snakeIntersection,
 } from "./snake.js";
 import { update as updateFood, draw as drawFood, resetFood } from "./food.js";
-import { outsideGrid } from "./grid.js";
 import { queueDirection, resetInput } from "./input.js";
 
 const BEST_KEY = "snake-best-score";
 // Moves per second: starts slow and speeds up with every food eaten
-const START_SPEED = 5;
+const START_SPEED = 4;
 const SPEED_STEP = 0.25;
 const MAX_SPEED = 12;
 
@@ -58,7 +56,8 @@ function main(currentTime) {
 
 function update() {
     updateSnake();
-    if (outsideGrid(getSnakeHead()) || snakeIntersection()) {
+    if (snakeIntersection()) {
+        draw();
         gameOver();
         return;
     }
@@ -124,7 +123,6 @@ function resume() {
 
 function gameOver() {
     state = "over";
-    // The board keeps the last frame before the crash
     gameBoard.classList.add("dead");
     showOverlay(`Game over!<br>Score ${score}`);
 }

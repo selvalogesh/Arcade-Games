@@ -7,11 +7,8 @@ export function randomGridPosition() {
     };
 }
 
-export function outsideGrid(position) {
-    return (
-        position.x < 1 ||
-        position.x > GRID_SIZE ||
-        position.y < 1 ||
-        position.y > GRID_SIZE
-    );
+// Leaving one edge of the board brings you back in on the opposite edge
+export function wrapPosition(position) {
+    const wrap = (value) => ((value - 1 + GRID_SIZE) % GRID_SIZE) + 1;
+    return { x: wrap(position.x), y: wrap(position.y) };
 }

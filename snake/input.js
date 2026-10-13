@@ -16,18 +16,21 @@ const DIRECTIONS = {
 // (e.g. up then left while going right) can't reverse the snake into itself
 const MAX_QUEUED_TURNS = 2;
 
-let currentDirection = { x: 0, y: 0 };
+// The snake starts facing up, with its body below the head
+const START_DIRECTION = DIRECTIONS.ArrowUp;
+
+let currentDirection = START_DIRECTION;
 const queuedDirections = [];
 
-// Returns true if the key was accepted as a new direction
+// Returns true if the key is a direction the snake can go (straight on or a turn),
+// false for unknown keys and for reversing into itself
 export function queueDirection(key) {
   const direction = DIRECTIONS[key];
-  if (!direction || queuedDirections.length >= MAX_QUEUED_TURNS) return false;
+  if (!direction) return false;
   const previous = queuedDirections.at(-1) ?? currentDirection;
-  const sameAxis =
-    (direction.x !== 0 && previous.x !== 0) ||
-    (direction.y !== 0 && previous.y !== 0);
-  if (sameAxis) return false;
+  if (direction.x === -previous.x && direction.y === -previous.y) return false;
+  if (direction === previous) return true;
+  if (queuedDirections.length >= MAX_QUEUED_TURNS) return false;
   queuedDirections.push(direction);
   return true;
 }
@@ -39,6 +42,6 @@ export function getInputDirection() {
 }
 
 export function resetInput() {
-  currentDirection = { x: 0, y: 0 };
+  currentDirection = START_DIRECTION;
   queuedDirections.length = 0;
 }
