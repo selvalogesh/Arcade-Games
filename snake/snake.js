@@ -1,15 +1,13 @@
 import { getInputDirection } from "./input.js";
 
-export const SNAKE_SPEED = 5;
-const snakeBody = [{ x: 11, y: 11 }];
+const START_POSITION = { x: 11, y: 11 };
+let snakeBody = [];
 let newSegments = 0;
 
-const addSegments = () => {
-    for (let i = 0; i < newSegments; i += 1) {
-        snakeBody.push({ ...snakeBody[snakeBody.length - 1] });
-    }
+export function resetSnake() {
+    snakeBody = [{ ...START_POSITION }];
     newSegments = 0;
-};
+}
 
 export function expandSnake(amount) {
     newSegments += amount;
@@ -31,23 +29,24 @@ export function snakeIntersection() {
 }
 
 export function update() {
-    addSegments();
     const inputDirection = getInputDirection();
-    if (inputDirection.move) {
-        for (let i = snakeBody.length - 2; i >= 0; i -= 1) {
-            snakeBody[i + 1] = { ...snakeBody[i] };
-        }
+    const head = snakeBody[0];
+    snakeBody.unshift({ x: head.x + inputDirection.x, y: head.y + inputDirection.y });
+    // The tail stays put while the snake still has segments to grow
+    if (newSegments > 0) {
+        newSegments -= 1;
+    } else {
+        snakeBody.pop();
     }
-    snakeBody[0].x += inputDirection.x;
-    snakeBody[0].y += inputDirection.y;
 }
 
 export function draw(gameBoard) {
-    snakeBody.forEach((segment) => {
+    snakeBody.forEach((segment, index) => {
         const snakeElement = document.createElement("div");
         snakeElement.style.gridRowStart = segment.y;
         snakeElement.style.gridColumnStart = segment.x;
         snakeElement.classList.add("snake");
+        if (index === 0) snakeElement.classList.add("head");
         gameBoard.appendChild(snakeElement);
     });
 }

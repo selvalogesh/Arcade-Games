@@ -9,14 +9,19 @@ const getRandomFoodPosition = () => {
     return newFoodPosition;
 };
 
-let food = getRandomFoodPosition();
+let food = null;
 const EXPANSION_RATE = 1;
 
+export function resetFood() {
+    food = getRandomFoodPosition();
+}
+
+// Returns true if the snake ate the food this move
 export function update() {
-    if (onSnake(food)) {
-        expandSnake(EXPANSION_RATE);
-        food = getRandomFoodPosition();
-    }
+    if (!onSnake(food)) return false;
+    expandSnake(EXPANSION_RATE);
+    food = getRandomFoodPosition();
+    return true;
 }
 
 export function draw(gameBoard) {

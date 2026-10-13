@@ -8,8 +8,8 @@
     "build": "node ../build-www.mjs 2048",
     "sync": "npm run build && cap sync android",
     "icons": "capacitor-assets generate --android",
-    "bundle": "npm run sync && cd android && gradlew.bat bundleRelease",
-    "apk": "npm run sync && cd android && gradlew.bat assembleRelease"
+    "bundle": "npm run sync && cd android && .\\gradlew.bat bundleRelease",
+    "apk": "npm run sync && cd android && .\\gradlew.bat assembleRelease"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",

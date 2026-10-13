@@ -1,28 +1,184 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    font-family: Arial;
+}
+
+:root {
+    /* One layout unit: the board is 90u wide and the whole game about 120u tall,
+       so it fits both portrait phones and landscape tablets */
+    --u: min(1vw, 0.75vh);
+    --u: min(1vw, 0.75dvh);
+    --grid-size: 21;
+}
+
 body {
-    height: 100vh;
-    width: 100vw;
+    overscroll-behavior: none;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    background-color: #333;
+    color: #eee;
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100vh;
+    height: 100dvh;
     margin: 0;
-    background-color: black;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    font-size: calc(var(--u) * 7.5);
+}
+
+#game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 4);
+}
+
+#header {
+    display: flex;
+    align-items: stretch;
+    gap: calc(var(--u) * 2);
+    width: calc(var(--u) * 90);
+}
+
+#title {
+    flex: 1;
+    margin: 0;
+    font-size: calc(var(--u) * 11);
+    align-self: center;
+    color: hsl(200, 50%, 75%);
+}
+
+.score-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: calc(var(--u) * 18);
+    padding: calc(var(--u) * 1) calc(var(--u) * 2);
+    background-color: #555;
+    border-radius: 1vmin;
+    font-size: calc(var(--u) * 5);
+    font-weight: bold;
+}
+
+.score-label {
+    font-size: calc(var(--u) * 3);
+    font-weight: normal;
+    text-transform: uppercase;
+    color: #bbb;
+}
+
+button {
+    border: none;
+    border-radius: 1vmin;
+    padding: calc(var(--u) * 2) calc(var(--u) * 3);
+    background-color: hsl(200, 50%, 40%);
+    color: #fff;
+    font-size: calc(var(--u) * 4.5);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:active {
+    background-color: hsl(200, 50%, 30%);
+}
+
+#pause {
+    min-width: calc(var(--u) * 14);
+}
+
+#board-wrap {
+    position: relative;
 }
 
 #game-board {
-    background-color: #ccc;
-    width: 100vmin;
-    height: 100vmin;
     display: grid;
-    grid-template-rows: repeat(21, 1fr);
-    grid-template-columns: repeat(21, 1fr);
+    grid-template-rows: repeat(var(--grid-size), 1fr);
+    grid-template-columns: repeat(var(--grid-size), 1fr);
+    width: calc(var(--u) * 90);
+    height: calc(var(--u) * 90);
+    padding: calc(var(--u) * 0.6);
+    background-color: #1c1c1c;
+    border-radius: 1vmin;
+}
+
+.snake,
+.food {
+    margin: calc(var(--u) * 0.25);
+    border-radius: calc(var(--u) * 1);
 }
 
 .snake {
     background-color: hsl(200, 100%, 50%);
-    border: .25vmin solid black;
+}
+
+.snake.head {
+    background-color: hsl(200, 100%, 65%);
 }
 
 .food {
     background-color: hsl(50, 100%, 50%);
-    border: .25vmin solid black;            
+    border-radius: 50%;
+}
+
+#game-board.dead .snake {
+    background-color: hsl(0, 70%, 50%);
+}
+
+#overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 5);
+    border-radius: 1vmin;
+    background-color: rgba(40, 40, 40, 0.85);
+    backdrop-filter: blur(6px);
+    text-align: center;
+    animation: fade-in 300ms ease-in;
+}
+
+/* "Swipe to start": keep the board visible and let swipes through,
+   with the message above the snake's start in the middle */
+#overlay.ready {
+    justify-content: flex-start;
+    padding-top: calc(var(--u) * 22);
+    background-color: rgba(40, 40, 40, 0.45);
+    backdrop-filter: none;
+    pointer-events: none;
+}
+
+#overlay[hidden],
+#overlay button[hidden] {
+    display: none;
+}
+
+#overlay-message {
+    margin: 0;
+    font-size: calc(var(--u) * 8);
+    font-weight: bold;
+    line-height: 1.3;
+}
+
+#overlay-buttons {
+    display: flex;
+    gap: calc(var(--u) * 3);
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+}
+
+#hint {
+    margin: 0;
+    font-size: calc(var(--u) * 3.5);
+    color: #999;
 }

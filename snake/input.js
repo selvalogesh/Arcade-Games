@@ -1,4 +1,3 @@
-import { pauseGameToggle, getGameState } from "./main.js";
 import {
   handleTouchStart,
   handleTouchMove,
@@ -7,38 +6,39 @@ import {
 document.addEventListener("touchstart", handleTouchStart, false);
 document.addEventListener("touchmove", handleTouchMove, false);
 
-let inputDirection = { x: 0, y: 0, move: false };
-let previousDirection = null;
+const DIRECTIONS = {
+  ArrowUp: { x: 0, y: -1 },
+  ArrowDown: { x: 0, y: 1 },
+  ArrowLeft: { x: -1, y: 0 },
+  ArrowRight: { x: 1, y: 0 },
+};
+// Turns typed faster than the snake moves are queued, so two quick turns
+// (e.g. up then left while going right) can't reverse the snake into itself
+const MAX_QUEUED_TURNS = 2;
 
-window.addEventListener("keydown", (e) => {
-  const isGamePaused = getGameState();
-  switch (e.key) {
-    case "ArrowUp":
-      if (previousDirection === "ArrowDown" || isGamePaused) return;
-      inputDirection = { x: 0, y: -1, move: true };
-      previousDirection = e.key;
-      break;
-    case "ArrowDown":
-      if (previousDirection === "ArrowUp" || isGamePaused) return;
-      inputDirection = { x: 0, y: 1, move: true };
-      previousDirection = e.key;
-      break;
-    case "ArrowRight":
-      if (previousDirection === "ArrowLeft" || isGamePaused) return;
-      inputDirection = { x: 1, y: 0, move: true };
-      previousDirection = e.key;
-      break;
-    case "ArrowLeft":
-      if (previousDirection === "ArrowRight" || isGamePaused) return;
-      inputDirection = { x: -1, y: 0, move: true };
-      previousDirection = e.key;
-      break;
-    case " ":
-      pauseGameToggle();
-      break;
-  }
-});
+let currentDirection = { x: 0, y: 0 };
+const queuedDirections = [];
 
+// Returns true if the key was accepted as a new direction
+export function queueDirection(key) {
+  const direction = DIRECTIONS[key];
+  if (!direction || queuedDirections.length >= MAX_QUEUED_TURNS) return false;
+  const previous = queuedDirections.at(-1) ?? currentDirection;
+  const sameAxis =
+    (direction.x !== 0 && previous.x !== 0) ||
+    (direction.y !== 0 && previous.y !== 0);
+  if (sameAxis) return false;
+  queuedDirections.push(direction);
+  return true;
+}
+
+// Called once per snake move
 export function getInputDirection() {
-  return inputDirection;
+  if (queuedDirections.length > 0) currentDirection = queuedDirections.shift();
+  return currentDirection;
+}
+
+export function resetInput() {
+  currentDirection = { x: 0, y: 0 };
+  queuedDirections.length = 0;
 }

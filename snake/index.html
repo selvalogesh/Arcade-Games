@@ -5,14 +5,39 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="viewport" content="minimal-ui, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#333333">
     <link rel="stylesheet" href="./style.css">
     <script type="module" src="./main.js"></script>
     <title>Snake</title>
 </head>
 
 <body>
-    <div id="game-board"></div>
+    <main id="game">
+        <header id="header">
+            <h1 id="title">Snake</h1>
+            <div class="score-box">
+                <span class="score-label">Score</span>
+                <span id="score">0</span>
+            </div>
+            <div class="score-box">
+                <span class="score-label">Best</span>
+                <span id="best-score">0</span>
+            </div>
+            <button id="pause" type="button" aria-label="Pause">&#10074;&#10074;</button>
+        </header>
+        <div id="board-wrap">
+            <div id="game-board"></div>
+            <div id="overlay" hidden>
+                <p id="overlay-message"></p>
+                <div id="overlay-buttons">
+                    <button id="resume" type="button">Resume</button>
+                    <button id="new-game" type="button">New game</button>
+                </div>
+            </div>
+        </div>
+        <p id="hint">Swipe or use arrow keys to steer</p>
+    </main>
 </body>
 
 </html>
