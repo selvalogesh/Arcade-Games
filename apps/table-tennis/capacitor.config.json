@@ -1,0 +1,15 @@
+{
+  "appId": "io.github.selvalogesh.tabletennis",
+  "appName": "Table Tennis",
+  "webDir": "www",
+  "backgroundColor": "#333333",
+  "android": {
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "style": "DARK",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}

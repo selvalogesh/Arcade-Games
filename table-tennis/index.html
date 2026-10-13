@@ -1,14 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Table Tennis</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#333333">
     <link rel="stylesheet" href="./style.css">
     <script type="module" src="./main.js"></script>
-  </head>
-  <body>
-      <canvas id="canva" width="800" height="600"></canvas>
-  </body>
+    <title>Table Tennis</title>
+</head>
+
+<body>
+    <main id="game">
+        <header id="header">
+            <h1 id="title">Table<br>Tennis</h1>
+            <div class="score-box">
+                <span class="score-label">CPU</span>
+                <span id="cpu-score">0</span>
+            </div>
+            <div class="score-box">
+                <span class="score-label">You</span>
+                <span id="player-score">0</span>
+            </div>
+            <button id="pause" type="button" aria-label="Pause">&#10074;&#10074;</button>
+        </header>
+        <div id="board-wrap">
+            <canvas id="table"></canvas>
+            <div id="overlay" hidden>
+                <p id="overlay-message"></p>
+                <div id="levels">
+                    <button type="button" data-level="easy">Easy<span class="record"></span></button>
+                    <button type="button" data-level="medium">Medium<span class="record"></span></button>
+                    <button type="button" data-level="hard">Hard<span class="record"></span></button>
+                </div>
+                <div id="overlay-buttons">
+                    <button id="resume" type="button">Resume</button>
+                    <button id="play-again" type="button">Play again</button>
+                    <button id="change-level" type="button">Levels</button>
+                </div>
+            </div>
+        </div>
+        <p id="hint">Drag anywhere to move your paddle · first to 7 wins</p>
+    </main>
+</body>
+
 </html>

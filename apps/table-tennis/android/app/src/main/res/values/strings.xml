@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Table Tennis</string>
+    <string name="title_activity_main">Table Tennis</string>
+    <string name="package_name">io.github.selvalogesh.tabletennis</string>
+    <string name="custom_url_scheme">io.github.selvalogesh.tabletennis</string>
+</resources>

@@ -9,6 +9,7 @@ apps/
   keystore.properties    upload-key passwords (NOT in git; see below)
   2048/                  io.github.selvalogesh.game2048
   snake/                 io.github.selvalogesh.snake
+  table-tennis/          io.github.selvalogesh.tabletennis
     capacitor.config.json
     android/             native project (committed)
     assets/              icon & splash sources for @capacitor/assets
@@ -25,7 +26,7 @@ apps/
 ## Build a release bundle
 
 ```sh
-cd apps/2048            # or apps/snake
+cd apps/2048            # or apps/snake, apps/table-tennis
 npm install
 npm run bundle          # -> android/app/build/outputs/bundle/release/app-release.aab
 ```

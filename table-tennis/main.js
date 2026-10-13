@@ -1,181 +1,182 @@
-let canva;
-let canvaContent;
-let ballR = 10;
-let ballX = 50;
-let ballY = 50;
-let ballSpeedX = 10;
-let ballSpeedY = 4;
-let framesPerSecond = 30;
+import { WIDTH, createMatch, step, isOver, movePlayer } from "./table.js";
+import { drawTable } from "./draw.js";
 
-const WINNING_SCORE = 3;
-const BASE_SPEED_RAMP = 10;
-let showEndScreen = false;
-let Player1Score = 0;
-const Player1BaseSpeed = 3;
-let Player2Score = 0;
+const RECORD_KEY = "table-tennis-record";
+// Paddle speed with the arrow keys, in table units per second
+const KEY_SPEED = 350;
+// Longest step simulated at once, so a stalled frame can't teleport the ball
+const MAX_STEP = 0.05;
 
-let padddle1Y = 250;
-let padddle2Y = 250;
+const canvas = document.getElementById("table");
+const ctx = canvas.getContext("2d");
+const cpuScoreElement = document.getElementById("cpu-score");
+const playerScoreElement = document.getElementById("player-score");
+const pauseButton = document.getElementById("pause");
+const overlay = document.getElementById("overlay");
+const overlayMessage = document.getElementById("overlay-message");
+const levelsElement = document.getElementById("levels");
+const resumeButton = document.getElementById("resume");
+const playAgainButton = document.getElementById("play-again");
+const changeLevelButton = document.getElementById("change-level");
 
-const PADDLE_WIDTH = 10;
-const PADDLE_HEIGHT = 100;
+// "menu" (choosing a level), "playing", "paused" or "over"
+let state = "menu";
+let match = createMatch("medium");
+let record = readRecord();
+let scale = 1;
+let lastTime = null;
+const keysDown = new Set();
 
-let frames = 0;
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("pointerdown", followPointer);
+window.addEventListener("pointermove", followPointer);
+window.addEventListener("keydown", handleKeyDown);
+window.addEventListener("keyup", (e) => keysDown.delete(e.key));
+onClick(pauseButton, togglePause);
+onClick(resumeButton, resume);
+onClick(playAgainButton, () => startMatch(match.level));
+onClick(changeLevelButton, showMenu);
+levelsElement.querySelectorAll("button").forEach((button) => {
+  onClick(button, () => startMatch(button.dataset.level));
+});
+// Pause when the app is sent to the background or the window loses focus
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pause();
+});
+window.addEventListener("blur", pause);
 
-window.onload = () => {
-  canva = document.getElementById("canva");
-  canvaContent = canva.getContext("2d");
+resizeCanvas();
+showMenu();
+window.requestAnimationFrame(main);
 
-  canva.addEventListener("mousemove", (evt) => {
-    let mousePos = calculateMousePos(evt);
-    padddle2Y = mousePos.Y - PADDLE_HEIGHT / 2;
-  });
-
-  window.addEventListener("keyup", (evt) => {
-    if (evt.key == " " || evt.code == "Space") {
-      if (frames) {
-        clearInterval(frames);
-        frames = 0;
-      } else {
-        start();
-      }
-    } else if (evt.key == "\n" || evt.code == "Enter") {
-      if (!frames) {
-        showEndScreen = false;
-        Player1Score = 0;
-        Player2Score = 0;
-        start();
-      }
-    }
-  });
-
-  start();
-};
-
-function start(startSpeed = 0) {
-  frames = setInterval(() => {
-    moveEverything();
-    drawEverything();
-  }, 1000 / (framesPerSecond+startSpeed));
-};
-
-function calculateMousePos(evt) {
-  let rect = canva.getBoundingClientRect();
-  let root = document.documentElement;
-  let mouseX = evt.clientX - rect.left - root.scrollLeft;
-  let mouseY = evt.clientY - rect.top - root.scrollTop;
-  return {
-    X: mouseX,
-    Y: mouseY,
-  };
+function main(currentTime) {
+  window.requestAnimationFrame(main);
+  const dt = lastTime === null ? 0 : Math.min(MAX_STEP, (currentTime - lastTime) / 1000);
+  lastTime = currentTime;
+  if (state === "playing") update(dt);
+  drawTable(ctx, match, scale, currentTime);
 }
 
-function ballRest() {
-  if (Player1Score >= WINNING_SCORE || Player2Score >= WINNING_SCORE) {
-    showEndScreen = true;
-    clearInterval(frames);
-    frames = 0;
-  } else {
-    ballX = canva.width / 2;
-    ballY = canva.height / 2;
-    clearInterval(frames);
-    start((Player1Score + Player2Score) * BASE_SPEED_RAMP);  
+function update(dt) {
+  const direction = (keysDown.has("ArrowRight") ? 1 : 0) - (keysDown.has("ArrowLeft") ? 1 : 0);
+  if (direction !== 0) movePlayer(match, match.player.x + direction * KEY_SPEED * dt);
+  const event = step(match, dt);
+  if (event === "player-point" || event === "cpu-point") {
+    showScores();
+    if (isOver(match)) finishMatch();
   }
 }
 
-function computerMovement() {
-  const padddle1YCenter = padddle1Y + PADDLE_HEIGHT / 2;
-  const Player1Speed = Player1BaseSpeed * (Player2Score+3);
-  if (padddle1YCenter < ballY - 35) {
-    padddle1Y += Player1Speed;
-  } else if (padddle1YCenter > ballY + 35) {
-    padddle1Y -= Player1Speed;
-  }
+// Your paddle follows your finger (or mouse) across the table, wherever you touch
+function followPointer(e) {
+  if (state !== "playing") return;
+  const rect = canvas.getBoundingClientRect();
+  movePlayer(match, ((e.clientX - rect.left) / rect.width) * WIDTH);
 }
 
-function moveEverything() {
-  computerMovement();
-  ballX += ballSpeedX;
-  ballY += ballSpeedY;
-  if (
-    (ballX - ballR - PADDLE_WIDTH < 0 &&
-      ballY > padddle1Y &&
-      ballY < padddle1Y + PADDLE_HEIGHT) ||
-    (ballX + ballR + PADDLE_WIDTH > canva.width &&
-      ballY > padddle2Y &&
-      ballY < padddle2Y + PADDLE_HEIGHT)
-  ) {
-    let ballPaddleY;
-    if (ballX < canva.width / 2) {
-      ballPaddleY = padddle1Y;
-    } else {
-      ballPaddleY = padddle2Y;
-    }
-    let deltaY = ballY - (ballPaddleY + PADDLE_HEIGHT / 2);
-    ballSpeedY = deltaY * 0.35;
-    ballSpeedX *= -1;
-  } else if (ballX + ballR < 0 || ballX - ballR > canva.width) {
-    if (ballX + ballR < 0) {
-      Player2Score += 1;
-    } else {
-      Player1Score += 1;
-    }
-    ballRest();
-    ballSpeedX *= -1;
-  }
-  if (ballY - ballR < 0 || ballY + ballR > canva.height) {
-    ballSpeedY *= -1;
-  }
-}
-
-function drawNet() {
-  for (let i = 0; i < canva.height; i += 40) {
-    colorRect(canva.width / 2 - 1, i, 2, 20, "white");
-  }
-}
-
-function drawEverything() {
-  colorRect(0, 0, canva.width, canva.height, "black");
-  if (showEndScreen) {
-    canvaContent.fillStyle = "white";
-    let wonPlayer;
-    if (Player1Score >= WINNING_SCORE) {
-      wonPlayer = "Left";
-    } else if (Player2Score >= WINNING_SCORE) {
-      wonPlayer = "Right";
-    }
-    canvaContent.fillText(`${wonPlayer} Player Won!`, 350, 200);
-    canvaContent.fillText("Press Enter to continue", 350, 500);
+function handleKeyDown(e) {
+  if (e.key === " " || e.key === "Escape") {
+    e.preventDefault();
+    togglePause();
     return;
   }
-
-  drawNet();
-
-  colorRect(0, padddle1Y, PADDLE_WIDTH, 100, "white");
-  colorRect(canva.width - PADDLE_WIDTH, padddle2Y, PADDLE_WIDTH, 100, "white");
-  colorCircle(ballX, ballY, ballR, "white");
-
-  let text = `Player 1 Score: ${Player1Score}`;
-  canvaContent.fillText(
-    text,
-    canva.width / 2 - canva.width / 4 - text.length,
-    100
-  );
-  canvaContent.fillText(
-    `Player 2 Score: ${Player2Score}`,
-    canva.width / 2 + canva.width / 4,
-    100
-  );
+  keysDown.add(e.key);
 }
 
-function colorCircle(centerX, centerY, radius, drawColor) {
-  canvaContent.fillStyle = drawColor;
-  canvaContent.beginPath();
-  canvaContent.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
-  canvaContent.fill();
+function startMatch(level) {
+  match = createMatch(level);
+  showScores();
+  state = "playing";
+  hideOverlay();
 }
 
-function colorRect(leftX, topY, width, height, drawColor) {
-  canvaContent.fillStyle = drawColor;
-  canvaContent.fillRect(leftX, topY, width, height);
+function showMenu() {
+  state = "menu";
+  levelsElement.querySelectorAll("button").forEach((button) => {
+    const { won, lost } = record[button.dataset.level];
+    button.querySelector(".record").textContent =
+      won + lost === 0 ? "Not played yet" : `${won} won · ${lost} lost`;
+  });
+  showOverlay("Choose a level", { levels: true });
+}
+
+function togglePause() {
+  if (state === "paused") resume();
+  else pause();
+}
+
+function pause() {
+  if (state !== "playing") return;
+  state = "paused";
+  showOverlay("Paused", { resume: true, changeLevel: true });
+}
+
+function resume() {
+  if (state !== "paused") return;
+  state = "playing";
+  hideOverlay();
+}
+
+function finishMatch() {
+  state = "over";
+  const { player, cpu } = match.score;
+  const won = player > cpu;
+  record[match.level][won ? "won" : "lost"] += 1;
+  writeRecord();
+  // Winner's score first
+  const result = won ? `You win!<br>${player} – ${cpu}` : `CPU wins<br>${cpu} – ${player}`;
+  showOverlay(result, { playAgain: true, changeLevel: true });
+}
+
+function showScores() {
+  cpuScoreElement.textContent = match.score.cpu;
+  playerScoreElement.textContent = match.score.player;
+}
+
+function showOverlay(message, { levels = false, resume = false, playAgain = false, changeLevel = false } = {}) {
+  overlayMessage.innerHTML = message;
+  levelsElement.hidden = !levels;
+  resumeButton.hidden = !resume;
+  playAgainButton.hidden = !playAgain;
+  changeLevelButton.hidden = !changeLevel;
+  overlay.hidden = false;
+}
+
+function hideOverlay() {
+  overlay.hidden = true;
+}
+
+// Sharp on high-density screens: the canvas has one pixel per device pixel
+function resizeCanvas() {
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = Math.round(canvas.clientWidth * ratio);
+  canvas.height = Math.round(canvas.clientHeight * ratio);
+  scale = canvas.width / WIDTH;
+}
+
+// Buttons lose focus after a click, so Space only toggles pause via handleKeyDown
+function onClick(button, handler) {
+  button.addEventListener("click", () => {
+    button.blur();
+    handler();
+  });
+}
+
+function readRecord() {
+  const empty = { easy: { won: 0, lost: 0 }, medium: { won: 0, lost: 0 }, hard: { won: 0, lost: 0 } };
+  try {
+    const saved = JSON.parse(localStorage.getItem(RECORD_KEY));
+    for (const level in empty) Object.assign(empty[level], saved?.[level]);
+  } catch {
+    // No saved record or storage unavailable
+  }
+  return empty;
+}
+
+function writeRecord() {
+  try {
+    localStorage.setItem(RECORD_KEY, JSON.stringify(record));
+  } catch {
+    // Storage unavailable (e.g. private mode); the game still works without saving
+  }
 }
